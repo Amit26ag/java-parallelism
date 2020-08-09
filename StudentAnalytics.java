@@ -104,22 +104,32 @@ public final class StudentAnalytics {
      */
     public String mostCommonFirstNameOfInactiveStudentsParallelStream(
             final Student[] studentArray) {
-        Map<String, Integer> map = new HashMap<>();
-        Arrays.stream(studentArray)
+//        Map<String, Integer> map = new HashMap<>();
+//        Arrays.stream(studentArray)
+//                .parallel()
+//                .filter(student -> !student.checkIsCurrent()).collect(Collectors.toList())
+//                .forEach(student -> {
+//                    map.put(student.getFirstName(), map.getOrDefault(student.getFirstName(), 0) + 1);
+//                });
+////        for (Student s: list) System.out.println(s.getFirstName() + ": " + s.checkIsCurrent());
+////        for (String k: map.keySet()) System.out.println(k + ": " + map.get(k));
+//        return map.keySet().stream()
+//                .max(new Comparator<String>() {
+//                    @Override
+//                    public int compare(String s, String t1) {
+//                        return map.get(s) - map.get(t1);
+//                    }
+//                }).orElse(null);
+        return Stream.of(studentArray)
                 .parallel()
-                .filter(student -> !student.checkIsCurrent()).collect(Collectors.toList())
-                .forEach(student -> {
-                    map.put(student.getFirstName(), map.getOrDefault(student.getFirstName(), 0) + 1);
-                });
-//        for (Student s: list) System.out.println(s.getFirstName() + ": " + s.checkIsCurrent());
-//        for (String k: map.keySet()) System.out.println(k + ": " + map.get(k));
-        return map.keySet().stream()
-                .max(new Comparator<String>() {
-                    @Override
-                    public int compare(String s, String t1) {
-                        return map.get(s) - map.get(t1);
-                    }
-                }).orElse(null);
+                .filter(s -> !s.checkIsCurrent())
+                .map(a -> a.getFirstName())
+                .collect(Collectors.groupingByConcurrent(b->b, Collectors.counting()))
+                .entrySet()
+                .stream()
+                .max(Map.Entry.comparingByValue())
+                .get()
+                .getKey();
     }
 
     /**
@@ -157,9 +167,9 @@ public final class StudentAnalytics {
             final Student[] studentArray) {
         return (int) Arrays.stream(studentArray)
                 .parallel()
-                .filter(student -> student.getGrade() < 65)
-                .filter(student -> student.getAge() > 20)
                 .filter(student -> !student.checkIsCurrent())
+                .filter(student -> student.getAge() > 20)
+                .filter(student -> student.getGrade() < 65)
                 .count();
     }
 }
