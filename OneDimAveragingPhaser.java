@@ -126,8 +126,10 @@ public final class OneDimAveragingPhaser {
 
                 for (int iter = 0; iter < iterations; iter++) {
 
-                    final int left = i * (n / tasks) + 1;
-                    final int right = (i + 1) * (n / tasks);
+                    final int chunkSize = (n + tasks - 1) / tasks;
+                    final int left = (i * chunkSize) + 1;
+                    int right = (left + chunkSize) - 1;
+                    if (right > n) right = n;
 
                     for (int j = left; j <= right; j++) {
                         threadPrivateMyNew[j] = (threadPrivateMyVal[j - 1]
@@ -136,7 +138,7 @@ public final class OneDimAveragingPhaser {
 
                     phasers[i].arrive();
 
-                    if (i >= 1) {
+                    if (i > 0) {
                         phasers[i - 1].awaitAdvance(iter);
                     }
                     if (i < tasks - 1) {
